@@ -1,0 +1,185 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, ChevronDown, Activity, Calendar } from "lucide-react";
+import clsx from "clsx";
+import { ResolutionData, EntryData, logProgress } from "@/services/db";
+import { useAuth } from "@/context/AuthContext";
+import { getTodayDateString, formatDateString } from "@/lib/utils";
+
+interface ResolutionCardProps {
+    resolution: ResolutionData;
+    entries: EntryData[]; // All entries for this resolution (or let component filter?)
+}
+
+export default function ResolutionCard({
+    resolution,
+    entries,
+}: ResolutionCardProps) {
+    const { user } = useAuth();
+    const [expanded, setExpanded] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    // Filter entries for this resolution
+    const myEntries = useMemo(
+        () => entries.filter((e) => e.resolutionId === resolution.id),
+        [entries, resolution.id]
+    );
+
+
+
+    // ...
+
+    // Check if completed today using local date
+    const todayStr = getTodayDateString();
+    const todayEntry = myEntries.find((e) => e.date === todayStr);
+    const isCompletedToday = !!todayEntry && !!todayEntry.value;
+
+    // Weekly Strip Logic
+    const weekDays = useMemo(() => {
+        const days = [];
+        const today = new Date();
+        // Get start of week (Monday)
+        const day = today.getDay();
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(today);
+        monday.setDate(diff);
+
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + i);
+            days.push(formatDateString(d));
+        }
+        return days;
+    }, []);
+
+    const handleToggleComplete = async () => {
+        if (!user || loading) return;
+        setLoading(true);
+
+        try {
+            // Toggle logic: If completed, maybe we can't un-complete easily without delete?
+            // Phase 2 Spec: "logProgress(resId, value)".
+            // If type is boolean, value is true/false.
+            // If already completed, let's toggle to false (remove entry effectively or set value false).
+            let newVal: boolean | number = !isCompletedToday;
+
+            if (newVal === true && (resolution.type === 'numeric' || resolution.type === 'duration') && resolution.target) {
+                newVal = resolution.target;
+            }
+
+            // Use today's date
+            await logProgress(user.uid, {
+                resolutionId: resolution.id!,
+                date: todayStr,
+                value: newVal,
+            });
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <motion.div
+            // @ts-ignore
+            layout
+            className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md"
+        >
+            <div
+                className="cursor-pointer p-5"
+                onClick={() => setExpanded(!expanded)}
+            >
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h3 className="text-lg font-bold text-gray-900">{resolution.title}</h3>
+                        <div className="mt-1 flex items-center gap-2 text-xs font-medium text-gray-400">
+                            <span className={clsx("capitalize", resolution.color.replace('bg-', 'text-'))}>{resolution.type}</span>
+                            {resolution.target && (
+                                <>
+                                    <span>•</span>
+                                    <span>Goal: {resolution.target} {resolution.unit}</span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleComplete();
+                        }}
+                        disabled={loading}
+                        className={clsx(
+                            "flex h-10 w-10 items-center justify-center rounded-full border transition-all active:scale-95",
+                            isCompletedToday
+                                ? `bg-black border-black text-white`
+                                : "border-gray-200 text-gray-300 hover:border-gray-400"
+                        )}
+                    >
+                        {isCompletedToday ? <Check size={20} /> : <div className="h-4 w-4 rounded-full bg-gray-100" />}
+                    </button>
+                </div>
+
+                {/* Weekly Strip */}
+                <div className="mt-6 flex justify-between gap-2">
+                    {weekDays.map((date) => {
+                        const entry = myEntries.find((e) => e.date === date);
+                        const isDone = !!entry && !!entry.value;
+                        const isToday = date === todayStr;
+                        const dateObj = new Date(date);
+                        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'narrow' }); // M, T, W...
+
+                        return (
+                            <div key={date} className="flex flex-col items-center gap-2">
+                                <div
+                                    className={clsx(
+                                        "h-2 w-8 rounded-full transition-colors duration-300",
+                                        isDone ? resolution.color : "bg-gray-100",
+                                        isToday && !isDone && "ring-1 ring-black ring-offset-2" // Highlight today
+                                    )}
+                                />
+                                <span className="text-[10px] uppercase text-gray-400">{dayName}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <AnimatePresence>
+                {expanded && (
+                    <motion.div
+                        // @ts-ignore
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="border-t border-gray-50 bg-gray-50/50 px-5 pb-5 pt-2"
+                    >
+                        <div className="mt-4 space-y-3">
+                            {/* Placeholder for Note Input */}
+                            <div>
+                                <label className="text-xs font-medium text-gray-400 uppercase tracking-widest">Note</label>
+                                <textarea
+                                    className="mt-2 block w-full rounded-xl border-gray-200 bg-white p-3 text-sm focus:border-black focus:ring-black"
+                                    rows={2}
+                                    placeholder="How did it go today?"
+                                />
+                            </div>
+
+                            {/* Placeholder for History/Stats */}
+                            <div>
+                                <label className="text-xs font-medium text-gray-400 uppercase tracking-widest">Stats</label>
+                                <div className="mt-2 flex h-24 items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 text-gray-400">
+                                    <Activity size={20} className="mr-2" />
+                                    <span className="text-xs">Trend line coming soon</span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+}
