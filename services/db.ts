@@ -146,3 +146,24 @@ export const deleteResolution = async (userId: string, resolutionId: string) => 
         throw error;
     }
 };
+
+/**
+ * Update a resolution
+ */
+export const updateResolution = async (userId: string, resolutionId: string, data: Partial<ResolutionData>) => {
+    try {
+        const resolutionRef = doc(db, "users", userId, "resolutions", resolutionId);
+        // Remove undefined fields
+        const cleanData = Object.fromEntries(
+            Object.entries(data).filter(([_, v]) => v !== undefined)
+        );
+
+        await setDoc(resolutionRef, {
+            ...cleanData,
+            updatedAt: serverTimestamp(),
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error updating resolution:", error);
+        throw error;
+    }
+};

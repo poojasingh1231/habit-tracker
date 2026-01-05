@@ -1,19 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, BarChart2, User, LogOut } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, BarChart2, User, LogOut, Mail } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import clsx from "clsx";
 
 const navItems = [
     { label: "Home", href: "/dashboard", icon: Home },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart2 },
+    { label: "Contact", href: "/dashboard/contact", icon: Mail },
     { label: "Profile", href: "/dashboard/profile", icon: User },
 ];
 
 export default function SideRail() {
     const pathname = usePathname();
+    const router = useRouter();
     const { logout } = useAuth();
 
     return (
@@ -57,7 +59,10 @@ export default function SideRail() {
 
             <div className="mt-auto w-full">
                 <button
-                    onClick={() => logout()}
+                    onClick={async () => {
+                        await logout();
+                        router.push("/");
+                    }}
                     className="group flex w-full items-center rounded-xl p-3 text-gray-600 transition-colors duration-200 hover:bg-red-50 hover:text-red-500"
                 >
                     <LogOut size={24} strokeWidth={2} />

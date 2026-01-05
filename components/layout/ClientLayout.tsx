@@ -3,7 +3,8 @@
 import { useAuth } from "@/context/AuthContext";
 import BottomNav from "./BottomNav";
 import SideRail from "./SideRail";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function ClientLayout({
     children,
@@ -12,6 +13,15 @@ export default function ClientLayout({
 }) {
     const { user, loading } = useAuth();
     const pathname = usePathname();
+    const router = useRouter();
+
+    const isDashboard = pathname?.startsWith("/dashboard");
+
+    useEffect(() => {
+        if (!loading && !user && isDashboard) {
+            router.push("/");
+        }
+    }, [user, loading, isDashboard, router]);
 
     // Don't show nav on landing page regardless of auth state (design choice)
     // OR show nav only if logged in AND not on landing page?
@@ -19,7 +29,7 @@ export default function ClientLayout({
     // So landing page is "/" and app is "/dashboard".
     // Means Nav should only be visible on "/dashboard" routes.
 
-    const isDashboard = pathname?.startsWith("/dashboard");
+
 
     if (loading) return null; // Or a global loader managed by AuthProvider
 

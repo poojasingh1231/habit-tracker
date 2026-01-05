@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Check, ChevronDown, Activity, Calendar } from "lucide-react";
+import { Trash2, Check, ChevronDown, Activity, Calendar, Pencil } from "lucide-react";
 import clsx from "clsx";
 import { ResolutionData, EntryData, logProgress, deleteResolution } from "@/services/db";
 import { useAuth } from "@/context/AuthContext";
 import { getTodayDateString, formatDateString } from "@/lib/utils";
+import AddResolutionModal from "../resolutions/AddResolutionModal";
 
 interface ResolutionCardProps {
     resolution: ResolutionData;
@@ -20,6 +21,8 @@ export default function ResolutionCard({
     const { user } = useAuth();
     const [expanded, setExpanded] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Filter entries for this resolution
     const myEntries = useMemo(
@@ -179,25 +182,65 @@ export default function ResolutionCard({
                         </div>
 
                         {/* Actions */}
-                        <div className="mt-6 flex justify-end border-t border-gray-100 pt-4">
+                        <div className="mt-6 flex justify-end gap-3 border-t border-gray-100 pt-4">
                             <button
-                                onClick={async (e) => {
+                                onClick={(e) => {
                                     e.stopPropagation();
-                                    if (window.confirm("Are you sure you want to delete this habit? This cannot be undone.")) {
-                                        if (user && resolution.id) {
-                                            await deleteResolution(user.uid, resolution.id);
-                                        }
-                                    }
+                                    setIsEditing(true);
                                 }}
-                                className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
+                                className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
                             >
-                                <Trash2 size={14} />
-                                Delete Habit
+                                <Pencil size={14} />
+                                Edit
                             </button>
+
+                            {/* Delete Button with Inline Confirmation */}
+                            {showDeleteConfirm ? (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowDeleteConfirm(false);
+                                        }}
+                                        className="rounded-lg px-3 py-2 text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            if (user && resolution.id) {
+                                                await deleteResolution(user.uid, resolution.id);
+                                            }
+                                        }}
+                                        className="flex items-center gap-2 rounded-lg bg-red-500 px-3 py-2 text-xs font-medium text-white hover:bg-red-600 transition-colors"
+                                    >
+                                        <Trash2 size={14} />
+                                        Confirm
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowDeleteConfirm(true);
+                                    }}
+                                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
+                                >
+                                    <Trash2 size={14} />
+                                    Delete
+                                </button>
+                            )}
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <AddResolutionModal
+                isOpen={isEditing}
+                onClose={() => setIsEditing(false)}
+                initialData={resolution}
+            />
         </motion.div>
     );
 }

@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 import { X, Check } from "lucide-react";
-import { addResolution, ResolutionType } from "@/services/db";
+import { useRouter } from "next/navigation";
+import { addResolution, ResolutionType, ResolutionData } from "@/services/db";
 import { useAuth } from "@/context/AuthContext";
 import clsx from "clsx";
 
@@ -32,8 +35,11 @@ const COLORS = [
 export default function AddResolutionModal({
     isOpen,
     onClose,
+    initialData
 }: AddResolutionModalProps) {
     const { user } = useAuth();
+    const router = useRouter(); // To refresh if needed, though onSnapshot handles it
+
     const [loading, setLoading] = useState(false);
 
     // Form State
@@ -41,33 +47,69 @@ export default function AddResolutionModal({
     const [type, setType] = useState<ResolutionType>("boolean");
     const [target, setTarget] = useState("");
     const [unit, setUnit] = useState("");
-    const [selectedColor, setSelectedColor] = useState(COLORS[8]); // Default blue
+    const [frequency, setFrequency] = useState<ResolutionFrequency>("daily");
+    const [color, setColor] = useState(COLORS[8]); // Default blue
+
+    // Populate form if initialData provided (Edit Mode)
+    useEffect(() => {
+        if (initialData) {
+            setTitle(initialData.title);
+            setType(initialData.type);
+            setTarget(initialData.target ? String(initialData.target) : "");
+            setUnit(initialData.unit || "");
+            setFrequency(initialData.frequency);
+            setColor(initialData.color);
+        } else {
+            // Reset if adding new
+            setTitle("");
+            setType("boolean");
+            setTarget("");
+            setUnit("");
+            setFrequency("daily");
+            setColor(COLORS[8]);
+        }
+    }, [initialData, isOpen]);
 
     if (!isOpen) return null;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) return;
+        if (!title.trim() || !user) return;
         setLoading(true);
 
         try {
-            await addResolution(user.uid, {
+            const resolutionData: ResolutionData = {
                 title,
                 type,
-                target: target ? Number(target) : undefined,
-                unit: unit || undefined,
-                frequency: "daily", // Default to daily for now
-                color: selectedColor,
-            });
+                frequency,
+                color,
+                // Only include if not boolean
+                ...(type !== "boolean" && {
+                    target: Number(target),
+                    unit,
+                }),
+            };
+
+            if (initialData && initialData.id) {
+                // UPDATE existing
+                // Dynamic import to avoid circular dependency if any, or just standard import
+                const { updateResolution } = await import("@/services/db");
+                await updateResolution(user.uid, initialData.id, resolutionData);
+            } else {
+                // CREATE new
+                await addResolution(user.uid, resolutionData);
+            }
+
             onClose();
-            // Reset form
-            setTitle("");
-            setType("boolean");
-            setTarget("");
-            setUnit("");
+            // Reset form if creating new (though useEffect handles this on re-open)
+            if (!initialData) {
+                setTitle("");
+                setTarget("");
+                setUnit("");
+            }
         } catch (error) {
             console.error(error);
-            alert("Failed to create resolution");
+            // alert("Failed to create resolution"); // Removed alert
         } finally {
             setLoading(false);
         }
@@ -161,15 +203,15 @@ export default function AddResolutionModal({
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Accent Color</label>
                         <div className="mt-2 flex flex-wrap gap-2">
-                            {COLORS.map((color) => (
+                            {COLORS.map((c) => (
                                 <button
-                                    key={color}
+                                    key={c}
                                     type="button"
-                                    onClick={() => setSelectedColor(color)}
+                                    onClick={() => setColor(c)}
                                     className={clsx(
                                         "h-6 w-6 rounded-full transition-transform",
-                                        color,
-                                        selectedColor === color ? "scale-110 ring-2 ring-black ring-offset-2" : "hover:scale-105"
+                                        c,
+                                        color === c ? "scale-110 ring-2 ring-black ring-offset-2" : "hover:scale-105"
                                     )}
                                 />
                             ))}
@@ -180,10 +222,9 @@ export default function AddResolutionModal({
                     <button
                         type="submit"
                         disabled={loading}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-black py-4 text-white hover:bg-gray-800 disabled:opacity-50"
+                        className="w-full rounded-2xl bg-black py-4 font-bold text-white transition-transform active:scale-95 disabled:opacity-50"
                     >
-                        {loading ? "Creating..." : "Start Tracking"}
-                        {!loading && <Check size={18} />}
+                        {loading ? "Saving..." : (initialData ? "Save Changes" : "Create Habit")}
                     </button>
                 </form>
             </div>
