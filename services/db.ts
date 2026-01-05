@@ -8,6 +8,7 @@ import {
     query,
     where,
     orderBy,
+    deleteDoc,
     Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
@@ -128,4 +129,20 @@ export const subscribeToEntries = (
         const entries = snapshot.docs.map((doc) => doc.data()) as EntryData[];
         callback(entries);
     });
+};
+
+/**
+ * Delete a resolution
+ */
+export const deleteResolution = async (userId: string, resolutionId: string) => {
+    try {
+        const resolutionRef = doc(db, "users", userId, "resolutions", resolutionId);
+        await deleteDoc(resolutionRef);
+        // Note: Subcollection 'entries' are NOT automatically deleted by Firestore.
+        // For MVP, leaving them orphaned is acceptable as they won't be queried without the parent ID.
+        // In a real production app, we'd use a cloud function to recursively delete.
+    } catch (error) {
+        console.error("Error deleting resolution:", error);
+        throw error;
+    }
 };

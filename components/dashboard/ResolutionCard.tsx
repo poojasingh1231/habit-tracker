@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronDown, Activity, Calendar } from "lucide-react";
+import { Trash2, Check, ChevronDown, Activity, Calendar } from "lucide-react";
 import clsx from "clsx";
-import { ResolutionData, EntryData, logProgress } from "@/services/db";
+import { ResolutionData, EntryData, logProgress, deleteResolution } from "@/services/db";
 import { useAuth } from "@/context/AuthContext";
 import { getTodayDateString, formatDateString } from "@/lib/utils";
 
@@ -176,6 +176,24 @@ export default function ResolutionCard({
                                     <span className="text-xs">Trend line coming soon</span>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="mt-6 flex justify-end border-t border-gray-100 pt-4">
+                            <button
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (window.confirm("Are you sure you want to delete this habit? This cannot be undone.")) {
+                                        if (user && resolution.id) {
+                                            await deleteResolution(user.uid, resolution.id);
+                                        }
+                                    }
+                                }}
+                                className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
+                            >
+                                <Trash2 size={14} />
+                                Delete Habit
+                            </button>
                         </div>
                     </motion.div>
                 )}

@@ -41,6 +41,38 @@ export const getLast7Days = () => {
 };
 
 /**
+ * Returns dates for the current week (Monday to Sunday)
+ */
+export const getCurrentWeekDays = () => {
+    const days = [];
+    const today = new Date();
+    const day = today.getDay(); // 0 (Sun) to 6 (Sat)
+
+    // Calculate Monday of this week
+    // If today is Sunday (0), Monday was 6 days ago.
+    // If today is Mon (1), diff is 0.
+    // diff = today.getDate() - day + (day === 0 ? -6 : 1);
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(today);
+    monday.setDate(diff);
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const dayStr = String(d.getDate()).padStart(2, '0');
+
+        days.push({
+            dateStr: `${year}-${month}-${dayStr}`,
+            dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+            fullDate: d
+        });
+    }
+    return days;
+};
+
+/**
  * Get date string for a Date object
  */
 export const formatDateString = (date: Date): string => {

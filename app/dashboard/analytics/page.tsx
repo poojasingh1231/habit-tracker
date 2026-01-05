@@ -9,7 +9,7 @@ import {
     EntryData
 } from "@/services/db";
 import { MoveUpRight, Calendar, Trophy, Flame } from "lucide-react";
-import { getLast7Days } from "@/lib/utils";
+import { getLast7Days, getCurrentWeekDays } from "@/lib/utils";
 import clsx from "clsx";
 
 export default function AnalyticsPage() {
@@ -28,15 +28,15 @@ export default function AnalyticsPage() {
 
     const totalEntries = entries.length;
 
-    // Weekly Progress Data (Last 7 Days)
+    // Weekly Progress Data (Current Week)
     const weeklyData = useMemo(() => {
-        const days = getLast7Days(); // returns { dateStr, dayName }
+        const days = getCurrentWeekDays(); // returns { dateStr, dayName } Mon-Sun
 
         return days.map(day => {
             // Count completions for this day
             const count = entries.filter(e => e.date === day.dateStr && !!e.value).length;
             return { day: day.dayName, count, date: day.dateStr };
-        }).reverse(); // getLast7Days returns newest first? No, loops 6 to 0. 
+        });
         // Wait, loop 6 to 0 means Today - 6 (oldest) to Today - 0 (newest) if we push?
         // Let's check getLast7Days impl. It pushes i=6 first (oldest). So order is Old -> New.
         // So no reverse needed.
@@ -69,7 +69,7 @@ export default function AnalyticsPage() {
             {/* Weekly Chart */}
             <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
                 <div className="mb-6 flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">Last 7 Days</h3>
+                    <h3 className="font-semibold text-gray-900">This Week</h3>
                     <div className="flex items-center gap-2 text-sm text-gray-400">
                         <Calendar size={16} />
                         <span>Weekly Overview</span>
