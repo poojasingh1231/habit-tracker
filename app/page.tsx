@@ -18,6 +18,18 @@ export default function Home() {
     }
   }, [user, router]);
 
+  // Prevent flash of landing page content if already logged in
+  if (user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-black"></div>
+          <p className="text-sm text-gray-500">Redirecting to Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white text-black selection:bg-gray-200">
       {/* Navbar */}

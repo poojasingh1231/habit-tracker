@@ -60,10 +60,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         try {
-            // Import Capacitor utilities dynamically to avoid SSR issues
+            console.log("Login initiated");
+
+            // 0. DX Guard: Always use Popup for Localhost
+            const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+            if (isLocalhost) {
+                console.log("Localhost detected: Using Popup (Bypassing Native Check)");
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+                return;
+            }
+
+            // Import Capacitor utilities dynamically
             const { Capacitor } = await import("@capacitor/core");
+            console.log("Platform:", Capacitor.getPlatform());
 
             if (Capacitor.isNativePlatform()) {
+                console.log("Running on Native");
                 const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
 
                 // 1. Native Sign In
@@ -73,12 +86,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     const credential = GoogleAuthProvider.credential(result.credential.idToken);
                     await signInWithCredential(auth, credential);
                 }
-                // Web Fallback: Use redirect to avoid popup blockers
+                // Web Fallback
+                console.log("Production detected: Using Redirect");
                 const provider = new GoogleAuthProvider();
                 await signInWithRedirect(auth, provider);
+                console.log("Login action completed");
             }
         } catch (error: any) {
-            console.error("Login failed:", error);
+            console.error("Login critical failure:", error);
+            console.error("Error Code:", error.code);
+            console.error("Error Message:", error.message);
             alert(`Login failed: ${error.message || JSON.stringify(error)}`);
         }
     };
