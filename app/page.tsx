@@ -4,11 +4,12 @@ import Link from "next/link";
 import { ArrowRight, Check, Star } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { user, loading, login } = useAuth();
   const router = useRouter();
+
   console.log("Landing Page Render - User:", user?.email, "Loading:", loading);
 
   useEffect(() => {

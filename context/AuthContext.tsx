@@ -60,62 +60,61 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         try {
-            try {
-                console.log("Login initiated");
+            console.log("Login initiated");
 
-                // Import Capacitor utilities dynamically
-                const { Capacitor } = await import("@capacitor/core");
-                console.log("Platform:", Capacitor.getPlatform());
+            // Import Capacitor utilities dynamically
+            const { Capacitor } = await import("@capacitor/core");
+            console.log("Platform:", Capacitor.getPlatform());
 
-                if (Capacitor.isNativePlatform()) {
-                    console.log("Running on Native");
-                    const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
+            if (Capacitor.isNativePlatform()) {
+                console.log("Running on Native");
+                const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
 
-                    // 1. Native Sign In
-                    const result = await FirebaseAuthentication.signInWithGoogle();
+                // 1. Native Sign In
+                const result = await FirebaseAuthentication.signInWithGoogle();
 
-                    if (result.credential?.idToken) {
-                        const credential = GoogleAuthProvider.credential(result.credential.idToken);
-                        await signInWithCredential(auth, credential);
-                    }
-                } else {
-                    // 2. Web Logic
-                    const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-
-                    if (isLocalhost) {
-                        console.log("Localhost detected: Using Popup");
-                        const provider = new GoogleAuthProvider();
-                        await signInWithPopup(auth, provider);
-                    } else {
-                        console.log("Production detected: Using Redirect");
-                        const provider = new GoogleAuthProvider();
-                        await signInWithRedirect(auth, provider);
-                    }
+                if (result.credential?.idToken) {
+                    const credential = GoogleAuthProvider.credential(result.credential.idToken);
+                    await signInWithCredential(auth, credential);
                 }
-                console.log("Login action completed");
-            } catch (error: any) {
-                console.error("Login critical failure:", error);
-                console.error("Error Code:", error.code);
-                console.error("Error Message:", error.message);
-                alert(`Login failed: ${error.message || JSON.stringify(error)}`);
+            } else {
+                // 2. Web Logic
+                const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+
+                if (isLocalhost) {
+                    console.log("Localhost detected: Using Popup");
+                    const provider = new GoogleAuthProvider();
+                    await signInWithPopup(auth, provider);
+                } else {
+                    console.log("Production detected: Using Redirect");
+                    const provider = new GoogleAuthProvider();
+                    await signInWithRedirect(auth, provider);
+                }
             }
-        };
-
-        const logout = async () => {
-            if (!app) return;
-            await signOut(auth);
-        };
-
-        return (
-            <AuthContext.Provider value={{ user, login, logout, loading }}>
-                {loading ? (
-                    <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-                        {/* Simple spinner or loader could go here */}
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-black"></div>
-                    </div>
-                ) : (
-                    children
-                )}
-            </AuthContext.Provider>
-        );
+            console.log("Login action completed");
+        } catch (error: any) {
+            console.error("Login critical failure:", error);
+            console.error("Error Code:", error.code);
+            console.error("Error Message:", error.message);
+            alert(`Login failed: ${error.message || JSON.stringify(error)}`);
+        }
     };
+
+    const logout = async () => {
+        if (!app) return;
+        await signOut(auth);
+    };
+
+    return (
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
+            {loading ? (
+                <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+                    {/* Simple spinner or loader could go here */}
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-black"></div>
+                </div>
+            ) : (
+                children
+            )}
+        </AuthContext.Provider>
+    );
+};
