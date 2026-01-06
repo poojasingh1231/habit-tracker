@@ -9,9 +9,11 @@ import { useEffect } from "react";
 export default function Home() {
   const { user, loading, login } = useAuth();
   const router = useRouter();
+  console.log("Landing Page Render - User:", user?.email, "Loading:", loading);
 
   useEffect(() => {
     if (user) {
+      console.log("User detected, redirecting to /dashboard");
       router.push("/dashboard");
     }
   }, [user, router]);

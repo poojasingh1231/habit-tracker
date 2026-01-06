@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Android Secrets
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+android/app/google-services.json
+

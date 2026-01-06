@@ -5,6 +5,9 @@ import {
     onAuthStateChanged,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
+    signInWithCredential,
     signOut,
     User,
 } from "firebase/auth";
@@ -42,6 +45,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setLoading(false);
         });
 
+        // Check for redirect result (web flow)
+        getRedirectResult(auth).catch((error) => {
+            console.error("Redirect login failed:", error);
+        });
+
         return () => unsubscribe();
     }, []);
 
@@ -50,8 +58,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             alert("Firebase keys missing!");
             return;
         }
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
+
+        try {
+            // Import Capacitor utilities dynamically to avoid SSR issues
+            const { Capacitor } = await import("@capacitor/core");
+
+            if (Capacitor.isNativePlatform()) {
+                const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
+
+                // 1. Native Sign In
+                const result = await FirebaseAuthentication.signInWithGoogle();
+
+                if (result.credential?.idToken) {
+                    const credential = GoogleAuthProvider.credential(result.credential.idToken);
+                    await signInWithCredential(auth, credential);
+                }
+                // Web Fallback: Use redirect to avoid popup blockers
+                const provider = new GoogleAuthProvider();
+                await signInWithRedirect(auth, provider);
+            }
+        } catch (error: any) {
+            console.error("Login failed:", error);
+            alert(`Login failed: ${error.message || JSON.stringify(error)}`);
+        }
     };
 
     const logout = async () => {
