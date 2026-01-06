@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "537925777058",
+    "project_id": "daily-habit-tracker-pro",
+    "storage_bucket": "daily-habit-tracker-pro.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:537925777058:android:ef245bf9d34534e6de09fb",
+        "android_client_info": {
+          "package_name": "com.yearone.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "537925777058-k32nichtp4kjseq6dltji3ak8lj9asrf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yearone.app",
+            "certificate_hash": "994400f14f2f13485d7014b9d120aa3521dab0e5"
+          }
+        },
+        {
+          "client_id": "537925777058-lfnb5k7ljj6u6fh4oa2t7fpda5s8mngb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yearone.app",
+            "certificate_hash": "c68c250e541b77c33a6143e53e4432aab581520e"
+          }
+        },
+        {
+          "client_id": "537925777058-5ucqs9s3o9tdtjuurepm99tdfqhit4g6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBU2hfunLcRSl0zX1-xN-xxIVMM43WkYKs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "537925777058-5ucqs9s3o9tdtjuurepm99tdfqhit4g6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -5,13 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { X, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { addResolution, ResolutionType, ResolutionData } from "@/services/db";
+import { addResolution, ResolutionType, ResolutionData, ResolutionFrequency } from "@/services/db";
 import { useAuth } from "@/context/AuthContext";
 import clsx from "clsx";
 
 interface AddResolutionModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialData?: ResolutionData;
 }
 
 const COLORS = [

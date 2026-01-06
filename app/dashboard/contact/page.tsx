@@ -24,8 +24,8 @@ export default function ContactPage() {
 
                     <div className="mt-6 rounded-xl bg-gray-50 px-6 py-4">
                         <p className="text-sm font-medium text-gray-400 uppercase tracking-widest">Email Us At</p>
-                        <a href="mailto:hello@yearone.app" className="mt-1 block text-xl font-bold text-black hover:text-blue-600 transition-colors">
-                            hello@yearone.app
+                        <a href="mailto:support@dailyhabittracker.club" className="mt-1 block text-xl font-bold text-black hover:text-blue-600 transition-colors">
+                            support@dailyhabittracker.club
                         </a>
                     </div>
                 </div>

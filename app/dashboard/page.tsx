@@ -25,11 +25,7 @@ export default function Dashboard() {
     const [entries, setEntries] = useState<EntryData[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    useEffect(() => {
-        if (!loading && !user) {
-            router.push("/");
-        }
-    }, [user, loading, router]);
+    // Auth check handled by ClientLayout
 
     // Subscriptions
     useEffect(() => {
@@ -89,9 +85,9 @@ export default function Dashboard() {
     }, [resolutions, entries]);
 
 
-    if (loading || !user) {
-        return null;
-    }
+    // Layout handles loading state
+    if (loading) return null;
+    if (!user) return null;
 
     return (
         <div className="min-h-screen pb-24">
