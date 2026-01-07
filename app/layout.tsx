@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 
 export const metadata: Metadata = {
-  title: "Year One",
+  title: "Daily Habit Tracker",
   description: "Track your New Year's resolutions with elegance.",
   manifest: "/manifest.json",
 };

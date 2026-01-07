@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.yearone.app',
-  appName: 'Year One',
+  appName: 'Daily Habit Tracker',
   webDir: 'out',
   plugins: {
     FirebaseAuthentication: {

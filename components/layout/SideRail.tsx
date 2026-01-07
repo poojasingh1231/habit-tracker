@@ -23,7 +23,7 @@ export default function SideRail() {
             <div className="mb-12 flex h-10 w-full items-center justify-center lg:justify-start">
                 <div className="h-8 w-8 rounded-full bg-black" />
                 <span className="ml-3 hidden text-xl font-bold tracking-tight lg:block">
-                    Year One
+                    Daily Habit Tracker
                 </span>
             </div>
 

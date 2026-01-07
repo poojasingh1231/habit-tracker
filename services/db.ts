@@ -113,7 +113,7 @@ export const subscribeToEntries = (
     callback: (data: EntryData[]) => void
 ) => {
     // In a real app with thousands of entries, we'd want to limit this query.
-    // For "Year One" MVP, getting all entries (or last 30 days) is fine.
+    // For "Daily Habit Tracker" MVP, getting all entries (or last 30 days) is fine.
     // Let's filter by date >= 7 days ago?
     // String comparison works for ISO dates.
 

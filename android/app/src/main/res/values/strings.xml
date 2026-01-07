@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Year One</string>
-    <string name="title_activity_main">Year One</string>
+    <string name="app_name">Daily Habit Tracker</string>
+    <string name="title_activity_main">Daily Habit Tracker</string>
     <string name="package_name">com.yearone.app</string>
     <string name="custom_url_scheme">com.yearone.app</string>
 </resources>

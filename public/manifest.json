@@ -1,6 +1,6 @@
 {
-    "name": "Year One",
-    "short_name": "Year One",
+    "name": "Daily Habit Tracker",
+    "short_name": "Daily Habits",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

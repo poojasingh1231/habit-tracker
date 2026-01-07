@@ -38,7 +38,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-black"></div>
-            <span className="text-xl font-bold tracking-tight">Year One</span>
+            <span className="text-xl font-bold tracking-tight">Daily Habit Tracker</span>
           </div>
           <button
             onClick={login}
@@ -61,7 +61,7 @@ export default function Home() {
             <span className="text-gray-400">actually stick.</span>
           </h1>
           <p className="mx-auto mt-8 max-w-2xl text-lg text-gray-500">
-            Year One removes the clutter so you can focus on consistency.
+            Daily Habit Tracker removes the clutter so you can focus on consistency.
             Track your resolutions, visualize progress, and achieve your goals with elegance.
           </p>
 
@@ -167,7 +167,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="border-t border-gray-100 py-12 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Year One. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Daily Habit Tracker. All rights reserved.</p>
         </footer>
       </main>
     </div>

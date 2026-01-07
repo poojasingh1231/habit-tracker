@@ -28,7 +28,7 @@ describe('Home Page', () => {
 
         // Check for the main heading
         // Check for the main heading (Brand Name appears multiple times)
-        const brandElements = screen.getAllByText(/Year One/i);
+        const brandElements = screen.getAllByText(/Daily Habit Tracker/i);
         expect(brandElements.length).toBeGreaterThan(0);
         expect(screen.getByText(/Build habits that/i)).toBeInTheDocument();
 
