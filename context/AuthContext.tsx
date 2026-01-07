@@ -78,18 +78,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     await signInWithCredential(auth, credential);
                 }
             } else {
-                // 2. Web Logic
-                const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-
-                if (isLocalhost) {
-                    console.log("Localhost detected: Using Popup");
-                    const provider = new GoogleAuthProvider();
-                    await signInWithPopup(auth, provider);
-                } else {
-                    console.log("Production detected: Using Redirect");
-                    const provider = new GoogleAuthProvider();
-                    await signInWithRedirect(auth, provider);
-                }
+                // 2. Web Logic (All Environments)
+                // Use Popup for consistency and to avoid redirect handling issues on static hosts
+                console.log("Web detected: Using Popup");
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
             }
             console.log("Login action completed");
         } catch (error: any) {

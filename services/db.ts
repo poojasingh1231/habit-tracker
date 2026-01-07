@@ -9,6 +9,7 @@ import {
     where,
     orderBy,
     deleteDoc,
+    getDocs,
     Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
@@ -164,6 +165,35 @@ export const updateResolution = async (userId: string, resolutionId: string, dat
         }, { merge: true });
     } catch (error) {
         console.error("Error updating resolution:", error);
+        throw error;
+    }
+};
+
+/**
+ * Delete all user data (resolutions and entries) and the user document
+ */
+export const deleteUserData = async (userId: string) => {
+    try {
+        // 1. Delete all entries
+        const entriesRef = collection(db, "users", userId, "entries");
+        const entriesSnapshot = await getDocs(entriesRef);
+        const entryDeletions = entriesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(entryDeletions);
+
+        // 2. Delete all resolutions
+        const resolutionsRef = collection(db, "users", userId, "resolutions");
+        const resolutionsSnapshot = await getDocs(resolutionsRef);
+        const resolutionDeletions = resolutionsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(resolutionDeletions);
+
+        // 3. Delete user document (if it exists, though in this schema 'users/{id}' might just be a container)
+        // We'll delete it just in case we store profile data there later.
+        const userRef = doc(db, "users", userId);
+        await deleteDoc(userRef);
+
+        console.log(`User data for ${userId} deleted from Firestore.`);
+    } catch (error) {
+        console.error("Error deleting user data:", error);
         throw error;
     }
 };

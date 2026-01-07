@@ -120,6 +120,36 @@ export default function ProfilePage() {
                     Sign Out
                 </button>
             </div>
+
+            {/* Danger Zone */}
+            <div className="pt-8 border-t border-gray-100">
+                <h3 className="text-lg font-bold text-red-600 mb-2">Danger Zone</h3>
+                <p className="text-sm text-gray-500 mb-4">Permanently delete your account and all data.</p>
+                <button
+                    onClick={async () => {
+                        if (confirm("Are you sure? This will permanently delete all your habits and data. This cannot be undone.")) {
+                            try {
+                                if (!user) return;
+                                // 1. Delete Firestore Data
+                                const { deleteUserData } = await import("@/services/db");
+                                await deleteUserData(user.uid);
+
+                                // 2. Delete Auth User
+                                await user.delete();
+
+                                // 3. Redirect
+                                router.push("/");
+                            } catch (error) {
+                                console.error("Deletion failed", error);
+                                alert("Failed to delete account. You may need to re-login recently to perform this action.");
+                            }
+                        }
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-600 py-4 text-white font-medium transition-colors hover:bg-red-700"
+                >
+                    Delete Account
+                </button>
+            </div>
         </div>
     );
 }
