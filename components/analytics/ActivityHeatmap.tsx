@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import clsx from "clsx";
 import { EntryData } from "@/services/db";
 
@@ -15,49 +15,72 @@ export default function ActivityHeatmap({
     color = "bg-green-500",
     showLegend = false,
 }: ActivityHeatmapProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Scroll to the end (today) on mount
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollLeft = containerRef.current.scrollWidth;
+        }
+    }, [entries]); // Re-run if entries change, though mostly just mount is enough
+
     // Generate dates for the last 365 days
-    const weeks = useMemo(() => {
-        const result = [];
+    const { days, weeksOfMonth } = useMemo(() => {
+        const resultDays = [];
         const today = new Date();
-        // Align to previous Sunday/Monday to ensure nice grid?
-        // Let's just go back 52 weeks * 7 days.
-        const totalDays = 52 * 7;
+        const totalWeeks = 52;
+        const totalDays = totalWeeks * 7;
         const startDate = new Date(today);
-        startDate.setDate(today.getDate() - totalDays + 1); // +1 to include today as last
+        startDate.setDate(today.getDate() - totalDays + 1);
 
-        // We want an array of columns (Weeks).
-        // Each column has 7 days (Sun-Sat or Mon-Sun).
-        // Let's generate a flat list of days first, then group by week.
+        const resultWeeks = [];
 
-        // Actually, GitHub graph is columns of weeks (Mon -> Sun top to bottom).
-        // Let's adjust startDate to be a Monday (or whatever start of week).
-        // If today is Wednesday, we want the grid to end on Wednesday (or end of this week).
-        // Let's keep it simple: List of days, CSS Grid will handle layout.
-        // We will display as: grid-flow-col (columns first), 7 rows.
-
-        const days = [];
         for (let i = 0; i < totalDays; i++) {
             const d = new Date(startDate);
             d.setDate(startDate.getDate() + i);
-            // Use local date string to match db.ts keys
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const dayStr = String(d.getDate()).padStart(2, '0');
             const dateStr = `${year}-${month}-${dayStr}`;
 
-            days.push({
+            resultDays.push({
                 date: dateStr,
                 dateObj: d,
             });
         }
-        return days;
+
+        // Calculate month labels for each week column
+        for (let i = 0; i < totalWeeks; i++) {
+            const weekStart = resultDays[i * 7].dateObj;
+            // Check if this week contains the 1st of the month
+            let monthLabel = "";
+            for (let j = 0; j < 7; j++) {
+                const day = resultDays[i * 7 + j];
+                if (day.dateObj.getDate() === 1) {
+                    monthLabel = day.dateObj.toLocaleString('default', { month: 'short' });
+                    break;
+                }
+            }
+            // If the very first week, show label regardless? Or maybe just if it changes.
+            // Let's stick to "contains 1st".
+            // Edge case: first column might be mid-month.
+            if (i === 0 && !monthLabel) {
+                monthLabel = resultDays[0].dateObj.toLocaleString('default', { month: 'short' });
+            }
+
+            resultWeeks.push({
+                label: monthLabel,
+                index: i
+            });
+        }
+
+        return { days: resultDays, weeksOfMonth: resultWeeks };
     }, []);
 
     // Create a generic "count" map for fast lookup
     const entryMap = useMemo(() => {
         const map = new Map<string, number>();
         entries.forEach((e) => {
-            // Only count if value is truthy (true, or non-zero number)
             if (e.value) {
                 const current = map.get(e.date) || 0;
                 map.set(e.date, current + 1);
@@ -66,30 +89,20 @@ export default function ActivityHeatmap({
         return map;
     }, [entries]);
 
-    // Generic count map
-
-    const getColor = (count: number) => {
-        if (count === 0) return "bg-gray-100";
-        // Ensure color is a valid string, fallback to green
-        if (!color || typeof color !== 'string') return "bg-green-500";
-
-        if (color.startsWith("bg-")) {
-            // If it's a specific brand color (e.g., bg-orange-500), we might just use opacity or shade?
-            // For simple boolean/individual habit:
-            return color;
-        }
-        // Fallback or Global Logic (Green scale)
-        if (count >= 4) return "bg-green-700";
-        if (count >= 3) return "bg-green-500";
-        if (count >= 2) return "bg-green-400";
-        return "bg-green-300";
-    };
-
-    // For single habit (passed specific color), we assume boolean-ish (0 or 1+).
-    // If showLegend is true, we might use the graded scale.
-
     return (
-        <div className="w-full overflow-x-auto pb-2">
+        <div ref={containerRef} className="w-full overflow-x-auto pb-2">
+            {/* Header for Months */}
+            <div className="flex gap-[2px] mb-1 w-max">
+                {weeksOfMonth.map((week, idx) => (
+                    <div
+                        key={idx}
+                        className="w-[10px] text-[10px] text-gray-400 text-center flex h-3 items-end justify-center overflow-visible whitespace-nowrap"
+                    >
+                        {week.label}
+                    </div>
+                ))}
+            </div>
+
             {/* 
                 Grid Layout:
                 - grid-rows-7: 7 days vertical
@@ -97,7 +110,7 @@ export default function ActivityHeatmap({
                 - gap-1: Spacing
              */}
             <div className="grid grid-rows-7 grid-flow-col gap-[2px] w-max">
-                {weeks.map((day) => {
+                {days.map((day) => {
                     const count = entryMap.get(day.date) || 0;
                     const intensityClass = showLegend
                         ? (count === 0 ? "bg-gray-100" : (count > 3 ? "bg-green-800" : (count > 1 ? "bg-green-500" : "bg-green-300")))

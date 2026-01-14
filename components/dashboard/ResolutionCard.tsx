@@ -35,6 +35,45 @@ export default function ResolutionCard({
 
     // ...
 
+    // Statistics
+    const stats = useMemo(() => {
+        const completedEntries = myEntries.filter(e => !!e.value);
+        const total = completedEntries.length;
+
+        // Streak Calculation
+        const completedDates = new Set(completedEntries.map(e => e.date));
+        let streak = 0;
+        const d = new Date();
+
+        // Check today first
+        let checkDateStr = formatDateString(d);
+        if (completedDates.has(checkDateStr)) {
+            streak++;
+        } else {
+            // Check yesterday if today is not done
+            d.setDate(d.getDate() - 1);
+            checkDateStr = formatDateString(d);
+            if (completedDates.has(checkDateStr)) {
+                streak++;
+            } else {
+                return { total, streak: 0 }; // No streak
+            }
+        }
+
+        // Count backwards
+        while (true) {
+            d.setDate(d.getDate() - 1);
+            checkDateStr = formatDateString(d);
+            if (completedDates.has(checkDateStr)) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+
+        return { total, streak };
+    }, [myEntries]);
+
     // Check if completed today using local date
     const todayStr = getTodayDateString();
     const todayEntry = myEntries.find((e) => e.date === todayStr);
@@ -162,14 +201,25 @@ export default function ResolutionCard({
                         className="border-t border-gray-50 bg-gray-50/50 px-5 pb-5 pt-2"
                     >
                         <div className="mt-4 space-y-3">
-                            {/* Placeholder for Note Input */}
+                            {/* Insights Section */}
                             <div>
-                                <label className="text-xs font-medium text-gray-400 uppercase tracking-widest">Note</label>
-                                <textarea
-                                    className="mt-2 block w-full rounded-xl border-gray-200 bg-white p-3 text-sm focus:border-black focus:ring-black"
-                                    rows={2}
-                                    placeholder="How did it go today?"
-                                />
+                                <label className="text-xs font-medium text-gray-400 uppercase tracking-widest">Insights</label>
+                                <div className="mt-2 grid grid-cols-2 gap-3">
+                                    <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+                                        <div className="text-xs font-medium text-gray-500">Daily Streak</div>
+                                        <div className="mt-1 flex items-baseline gap-1">
+                                            <span className="text-2xl font-bold text-gray-900">{stats.streak}</span>
+                                            <span className="text-xs text-gray-400">days</span>
+                                        </div>
+                                    </div>
+                                    <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+                                        <div className="text-xs font-medium text-gray-500">Total Completions</div>
+                                        <div className="mt-1 flex items-baseline gap-1">
+                                            <span className="text-2xl font-bold text-gray-900">{stats.total}</span>
+                                            <span className="text-xs text-gray-400">times</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* History/Stats */}
