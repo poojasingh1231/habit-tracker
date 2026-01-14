@@ -39,7 +39,12 @@ export default function ActivityHeatmap({
         for (let i = 0; i < totalDays; i++) {
             const d = new Date(startDate);
             d.setDate(startDate.getDate() + i);
-            const dateStr = d.toISOString().split("T")[0]; // YYYY-MM-DD
+            // Use local date string to match db.ts keys
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const dayStr = String(d.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${dayStr}`;
+
             days.push({
                 date: dateStr,
                 dateObj: d,
@@ -61,8 +66,13 @@ export default function ActivityHeatmap({
         return map;
     }, [entries]);
 
+    // Generic count map
+
     const getColor = (count: number) => {
         if (count === 0) return "bg-gray-100";
+        // Ensure color is a valid string, fallback to green
+        if (!color || typeof color !== 'string') return "bg-green-500";
+
         if (color.startsWith("bg-")) {
             // If it's a specific brand color (e.g., bg-orange-500), we might just use opacity or shade?
             // For simple boolean/individual habit:
