@@ -11,6 +11,7 @@ import {
 import { MoveUpRight, Calendar, Trophy, Flame } from "lucide-react";
 import { getLast7Days, getCurrentWeekDays } from "@/lib/utils";
 import clsx from "clsx";
+import ActivityHeatmap from "@/components/analytics/ActivityHeatmap";
 
 export default function AnalyticsPage() {
     const { user, loading } = useAuth();
@@ -101,6 +102,18 @@ export default function AnalyticsPage() {
                 </div>
             </div>
 
+            {/* Yearly Activity */}
+            <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+                <div className="mb-6">
+                    <h3 className="font-semibold text-gray-900">Yearly Activity</h3>
+                    <p className="text-sm text-gray-400">Your global consistency across all habits.</p>
+                </div>
+                <div className="flex justify-center">
+                    {/* Pass all entries to show combined heat map */}
+                    <ActivityHeatmap entries={entries} showLegend={true} />
+                </div>
+            </div>
+
             {/* Stats Grid */}
             <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -123,8 +136,8 @@ export default function AnalyticsPage() {
                     <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-50 text-green-500">
                         <MoveUpRight size={20} />
                     </div>
-                    <p className="text-sm font-medium text-gray-400">Coming Soon</p>
-                    <p className="mt-1 text-base font-semibold text-gray-900">Detailed Insights</p>
+                    <p className="text-sm font-medium text-gray-400">Longest Streak</p>
+                    <p className="mt-1 text-base font-semibold text-gray-900">Coming Soon</p>
                 </div>
             </div>
         </div>

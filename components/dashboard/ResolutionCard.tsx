@@ -8,6 +8,7 @@ import { ResolutionData, EntryData, logProgress, deleteResolution } from "@/serv
 import { useAuth } from "@/context/AuthContext";
 import { getTodayDateString, formatDateString } from "@/lib/utils";
 import AddResolutionModal from "../resolutions/AddResolutionModal";
+import ActivityHeatmap from "@/components/analytics/ActivityHeatmap";
 
 interface ResolutionCardProps {
     resolution: ResolutionData;
@@ -171,12 +172,13 @@ export default function ResolutionCard({
                                 />
                             </div>
 
-                            {/* Placeholder for History/Stats */}
+                            {/* History/Stats */}
                             <div>
-                                <label className="text-xs font-medium text-gray-400 uppercase tracking-widest">Stats</label>
-                                <div className="mt-2 flex h-24 items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 text-gray-400">
-                                    <Activity size={20} className="mr-2" />
-                                    <span className="text-xs">Trend line coming soon</span>
+                                <label className="text-xs font-medium text-gray-400 uppercase tracking-widest">Yearly Activity</label>
+                                <div className="mt-2 rounded-xl border border-dashed border-gray-200 bg-white p-3">
+                                    <div className="flex justify-center">
+                                        <ActivityHeatmap entries={myEntries} color={resolution.color} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
