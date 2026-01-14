@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { Plus } from "lucide-react";
+import confetti from "canvas-confetti";
 import AddResolutionModal from "@/components/resolutions/AddResolutionModal";
 import ProgressRing from "@/components/dashboard/ProgressRing";
 import ResolutionCard from "@/components/dashboard/ResolutionCard";
@@ -81,8 +82,21 @@ export default function Dashboard() {
             }
         });
 
-        return (completedCount / resolutions.length) * 100;
+        const percentage = (completedCount / resolutions.length) * 100;
+
+        return percentage;
     }, [resolutions, entries]);
+
+    // Confetti Effect
+    useEffect(() => {
+        if (progressPercentage === 100 && resolutions.length > 0) {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+    }, [progressPercentage, resolutions.length]);
 
 
     // Layout handles loading state

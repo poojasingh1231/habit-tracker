@@ -71,7 +71,30 @@ export default function ResolutionCard({
             }
         }
 
-        return { total, streak };
+        // Repair Logic: The day where the streak stopped (d/checkDateStr from while loop break)
+        // If we repair this day, would it connect to an older streak?
+        // Or simply, is it just a missed day that we want to allow repairing?
+        // Let's just say if the streak ended, 'checkDateStr' is the missed date.
+        // We can offer to repair it.
+        // Optional: Only offer repair if there was activity BEFORE it? (To actually "repair" a gap)
+        // For simplicity/user request: "Option to fix your streak... fix the last broken streak"
+
+        let repairCandidate = null;
+        // Check if there is data BEFORE the gap to ensure it's a gap, not just the start
+        // d is currently the gap day.
+        const gapDateStr = checkDateStr;
+
+        // Look 1 day further back
+        const preGap = new Date(d);
+        preGap.setDate(preGap.getDate() - 1);
+        const preGapStr = formatDateString(preGap);
+
+        if (completedDates.has(preGapStr)) {
+            // There was a streak before this gap!
+            repairCandidate = gapDateStr;
+        }
+
+        return { total, streak, repairCandidate };
     }, [myEntries]);
 
     // Check if completed today using local date
@@ -97,25 +120,25 @@ export default function ResolutionCard({
         return days;
     }, []);
 
-    const handleToggleComplete = async () => {
+    const handleToggleComplete = async (dateOverride?: string) => {
         if (!user || loading) return;
         setLoading(true);
 
+        const targetDate = dateOverride || todayStr;
+        const targetEntry = myEntries.find(e => e.date === targetDate);
+        const isTargetDone = !!targetEntry && !!targetEntry.value;
+
         try {
-            // Toggle logic: If completed, maybe we can't un-complete easily without delete?
-            // Phase 2 Spec: "logProgress(resId, value)".
-            // If type is boolean, value is true/false.
-            // If already completed, let's toggle to false (remove entry effectively or set value false).
-            let newVal: boolean | number = !isCompletedToday;
+            // Toggle logic
+            let newVal: boolean | number = !isTargetDone;
 
             if (newVal === true && (resolution.type === 'numeric' || resolution.type === 'duration') && resolution.target) {
                 newVal = resolution.target;
             }
 
-            // Use today's date
             await logProgress(user.uid, {
                 resolutionId: resolution.id!,
-                date: todayStr,
+                date: targetDate,
                 value: newVal,
             });
         } catch (e) {
@@ -179,7 +202,7 @@ export default function ResolutionCard({
                             <div key={date} className="flex flex-col items-center gap-2">
                                 <div
                                     className={clsx(
-                                        "h-2 w-8 rounded-full transition-colors duration-300",
+                                        "h-2 w-8 rounded-full transition-all duration-300",
                                         isDone ? resolution.color : "bg-gray-100",
                                         isToday && !isDone && "ring-1 ring-black ring-offset-2" // Highlight today
                                     )}
@@ -220,6 +243,39 @@ export default function ResolutionCard({
                                         </div>
                                     </div>
                                 </div>
+                                {/* Streak Repair UI */}
+                                {stats.repairCandidate && (
+                                    <motion.div
+                                        // @ts-ignore
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="mt-3 flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50 p-3"
+                                    >
+                                        <div className="text-xs text-blue-700">
+                                            <span className="font-semibold">Broken Streak?</span>
+                                            <br />
+                                            Missed {new Date(stats.repairCandidate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                        </div>
+                                        <button
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                if (user && resolution.id && stats.repairCandidate) {
+                                                    setLoading(true);
+                                                    await logProgress(user.uid, {
+                                                        resolutionId: resolution.id,
+                                                        date: stats.repairCandidate,
+                                                        value: true // Assume boolean repair for now
+                                                    });
+                                                    setLoading(false);
+                                                }
+                                            }}
+                                            disabled={loading}
+                                            className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95"
+                                        >
+                                            Repair
+                                        </button>
+                                    </motion.div>
+                                )}
                             </div>
 
                             {/* History/Stats */}
