@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import React, { useMemo, useRef, useEffect } from "react";
 import clsx from "clsx";
 import { EntryData } from "@/services/db";
+import { TAILWIND_COLORS_MAP } from "@/lib/constants";
 
 interface ActivityHeatmapProps {
     entries: EntryData[];
@@ -48,39 +49,27 @@ export default function ActivityHeatmap({
         return days;
     }, []);
 
-    // Create a generic "count" map for fast lookup
-    const entryMap = useMemo(() => {
-        const map = new Map<string, number>();
-        entries.forEach((e) => {
-            // Only count if value is truthy (true, or non-zero number)
-            if (e.value) {
-                const current = map.get(e.date) || 0;
-                map.set(e.date, current + 1);
-            }
-        });
-        return map;
-    }, [entries]);
-
-    const getColor = (count: number) => {
-        if (count === 0) return "bg-gray-100";
-        if (color.startsWith("bg-")) {
-            // If it's a specific brand color (e.g., bg-orange-500), we might just use opacity or shade?
-            // For simple boolean/individual habit:
-            return color;
-        }
-        // Fallback or Global Logic (Green scale)
-        if (count >= 4) return "bg-green-700";
-        if (count >= 3) return "bg-green-500";
-        if (count >= 2) return "bg-green-400";
-        return "bg-green-300";
-    };
+    // Generic count map
 
     // For single habit (passed specific color), we assume boolean-ish (0 or 1+).
     // If showLegend is true, we might use the graded scale.
 
+    // Ref for the scroll container
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll to the end (Today) on mount
+    useEffect(() => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+        }
+    }, [entries]); // Re-scroll if entries update (or just on mount)
+
     return (
-        <div className="w-full overflow-x-auto pb-2">
-            {/* 
+        <div
+            ref={scrollContainerRef}
+            className="w-full overflow-x-auto pb-2"
+        >
+            {/*
                 Grid Layout:
                 - grid-rows-7: 7 days vertical
                 - grid-flow-col: Fill columns first (weeks)
@@ -88,23 +77,24 @@ export default function ActivityHeatmap({
              */}
             <div className="grid grid-rows-7 grid-flow-col gap-[2px] w-max">
                 {weeks.map((day) => {
-                    const count = entryMap.get(day.date) || 0;
-                    const intensityClass = showLegend
-                        ? (count === 0 ? "bg-gray-100" : (count > 3 ? "bg-green-800" : (count > 1 ? "bg-green-500" : "bg-green-300")))
-                        : (count > 0 ? color : "bg-gray-100");
+                    // Check if there is an entry for this day
+                    const match = entries.find(e => e.date === day.date && e.value);
+                    const count = match ? 1 : 0;
+
+                    // Style: Active days get Red, Inactive get Gray
+                    const bgStyle = count > 0 ? { backgroundColor: '#ef4444' } : { backgroundColor: '#f3f4f6' };
 
                     return (
                         <div
                             key={day.date}
-                            className={clsx(
-                                "h-[10px] w-[10px] rounded-[2px] transition-all",
-                                intensityClass
-                            )}
-                            title={`${day.date}: ${count} completed`}
+                            className="h-[10px] w-[10px] rounded-[2px] transition-all"
+                            style={bgStyle}
+                            title={`${day.date}: ${match ? 'Completed' : 'No Activity'}`}
                         />
                     );
                 })}
             </div>
+
             {showLegend && (
                 <div className="mt-2 flex items-center justify-end gap-1 text-xs text-gray-400">
                     <span>Less</span>
