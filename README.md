@@ -1,6 +1,6 @@
 # Resol - v2.0
 
-Resol is a habit tracking application built with Next.js, Capacitor, and Firebase.
+This habit tracking application built with Next.js, Capacitor, and Firebase.
 
 ## v2.0 Release Notes
 

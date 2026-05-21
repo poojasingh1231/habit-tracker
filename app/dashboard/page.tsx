@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { Plus } from "lucide-react";
 import confetti from "canvas-confetti";
+import { NotificationService } from "@/services/notifications";
 import AddResolutionModal from "@/components/resolutions/AddResolutionModal";
 import ProgressRing from "@/components/dashboard/ProgressRing";
 import ResolutionCard from "@/components/dashboard/ResolutionCard";
@@ -97,6 +98,38 @@ export default function Dashboard() {
             });
         }
     }, [progressPercentage, resolutions.length]);
+
+    // Smart Notification Logic (Streak Repair)
+    useEffect(() => {
+        const manageNotifications = async () => {
+            const saved = localStorage.getItem('notification_schedules');
+            if (!saved) return;
+
+            const schedules = JSON.parse(saved); // Need to import type? Or just infer.
+            const repairSchedule = schedules[3]; // ID 3 is STREAK_REPAIR (Hardcoded ID reference from service)
+
+            if (!repairSchedule || !repairSchedule.enabled) return;
+
+            // Import these from service/notifications to be clean, but for now using ID 3.
+            // Actually let's dynamically import or assumed standard structure.
+            // ID 3 is defined in DEFAULT_SCHEDULES in services/notifications.ts
+
+            if (progressPercentage === 100) {
+                // Goal met! You won't need to repair tomorrow. Cancel the alarm.
+                await NotificationService.cancel(3);
+                console.log("Cancelled Streak Repair notification setup (Goal Met)");
+            } else {
+                // Goal not met yet. Ensure the "Repair" notification is scheduled for tomorrow.
+                // Note: The service.schedule cancels before scheduling, so this effectively "Resets" it.
+                // To avoid spamming native bridge on every render, we could check pending?
+                // For MVP, just scheduling is 'safe' (idempotent-ish).
+                await NotificationService.schedule(repairSchedule);
+                console.log("Scheduled Streak Repair notification (Goal Pending)");
+            }
+        };
+
+        manageNotifications();
+    }, [progressPercentage]); // Runs when progress updates
 
 
     // Layout handles loading state
